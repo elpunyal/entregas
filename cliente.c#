@@ -1,0 +1,81 @@
+using System;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
+using System.Windows.Forms;
+using System.Drawing;
+using System.Data;
+using System.Collections.Generic;
+using System.Linq;
+using System.ComponentModel;
+
+namespace Cliente
+{
+    public partial class ClienteForm : Form
+    {
+        Socket servidor;
+        public ClienteForm()
+        {
+            InitializeComponent();
+        }
+
+        private void ClienteForm_Load(object sender, EventArgs e)
+        {
+            this.BackColor = Color.Gray;
+        }
+
+        private void BtnEnviar_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                IPAddress direccionIP = IPAddress.Parse("127.0.0.1");
+                IPEndPoint puntoDeConexion = new IPEndPoint(direccionIP, 9050);
+                servidor = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                try
+                {
+                    servidor.Connect(puntoDeConexion);
+
+                    if (servidor.Connected)
+                    {
+                        this.BackColor = Color.Green;
+                        MessageBox.Show("Conectado con éxito");
+                    }
+
+                    if (Servicio1.Checked)
+                    {
+                        string mensaje = "1/" + txtGrados.Text; // Suponiendo que el campo de texto se llama txtGrados
+                        byte[] datosMensaje = Encoding.ASCII.GetBytes(mensaje);
+                        servidor.Send(datosMensaje);
+
+                        byte[] datosRespuesta = new byte[80];
+                        servidor.Receive(datosRespuesta);
+                        mensaje = Encoding.ASCII.GetString(datosRespuesta).Split('\0')[0];
+                        MessageBox.Show("El resultado es: " + mensaje);
+                    }
+                    else if (Servicio2.Checked)
+                    {
+                        string mensaje = "2/" + txtGrados.Text; // Suponiendo que el campo de texto se llama txtGrados
+                        byte[] datosMensaje = Encoding.ASCII.GetBytes(mensaje);
+                        servidor.Send(datosMensaje);
+
+                        byte[] datosRespuesta = new byte[80];
+                        servidor.Receive(datosRespuesta);
+                        mensaje = Encoding.ASCII.GetString(datosRespuesta).Split('\0')[0];
+                        MessageBox.Show("El resultado es: " + mensaje);
+                    }
+                    else
+                    {
+                        MessageBox.Show("No se ha seleccionado ningún servicio");
+                    }
+                }
+                this.BackColor = Color.Gray;
+                servidor.Shutdown(SocketShutdown.Both);
+                servidor.Close();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error: " + ex.Message);
+            }
+        }
+    }
+}
